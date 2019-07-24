@@ -16,7 +16,9 @@ class Render {
     const taskLiElement = document.createElement('li');
     const titleSpanElement = document.createElement('span');
     const deleteTaskButton = document.createElement('button');
+    const checkboxButton = document.createElement('input');
 
+    checkboxButton.setAttribute('type', 'checkbox');
     deleteTaskButton.innerText = 'Delete';
     deleteTaskButton.setAttribute('id', `delete-${task.id}`);
     taskLiElement.setAttribute('id', `task-${task.id}`);
@@ -24,6 +26,8 @@ class Render {
 
     taskLiElement.appendChild(titleSpanElement);
     taskLiElement.appendChild(deleteTaskButton);
+    taskLiElement.appendChild(checkboxButton);
+    
     this._taskContainer.appendChild(taskLiElement);
   }
 
