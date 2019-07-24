@@ -1,87 +1,39 @@
 class Render {
-  debugger
   constructor(
     taskContainer,
-    errorContainer
+    errorContainer,
+    deleteTaskFunction,
+    toggleTaskFunction
   ) {
     this._taskContainer = taskContainer;
     this._errorContainer = errorContainer;
-    this._events = {};
-  }
 
-  set deleteTaskFunction(func) {
-    this._deleteTaskFunction = func;
-  }
-
-  set toggleTaskFunction(func) {
-    this._toggleTaskFunction = func;
+    this._deleteTaskFunction = deleteTaskFunction;
+    this._toggleTaskFunction = toggleTaskFunction;
   }
 
   renderTask(task) {
-    const taskElement = document.createElement('div');
-    taskElement.setAttribute('id', task.id);
-    taskElement.classList.add('taskElemStyle')
+    const taskLiElement = document.createElement('li');
+    const titleSpanElement = document.createElement('span');
+    const deleteTaskButton = document.createElement('button');
 
-    const textElement = document.createElement('span');
-    textElement.textContent = task.title;
+    deleteTaskButton.innerText = 'Delete';
+    deleteTaskButton.setAttribute('id', `delete-${task.id}`);
+    taskLiElement.setAttribute('id', `task-${task.id}`);
+    titleSpanElement.innerText = task.title;
 
-    const checkboxElement = document.createElement('input');
-    checkboxElement.setAttribute('type', 'checkbox');
-    
-
-    const toggleFunc = (function(event){
-      const id= event.currentTarget.parentNode.id;
-      this._toggleTaskFunction(id);
-    }).bind(this);
-
-    this._events[`${task.id}_toggle`]= toggleFunc;
-
-    checkboxElement.addEventListener('change', toggleFunc);
-
-    const buttonElement = document.createElement('input');
-    buttonElement.setAttribute('type', 'button');
-    buttonElement.setAttribute('value', 'Delete');
-    buttonElement.setAttribute('class', 'Delete');
-
-    const deleteFunc = (function(event){
-      const id = event.currentTarget.parentNode.id;
-      this._deleteTaskFunction(id);
-    }).bind(this);
-
-    this._events[`${task.id}_delete`] = deleteFunc;
-    
-    buttonElement.addEventListener('click', deleteFunc);
-     
-
-    taskElement.appendChild(checkboxElement);
-    taskElement.appendChild(textElement);
-    taskElement.appendChild(buttonElement);
-
-    this._taskContainer.appendChild(taskElement);
+    taskLiElement.appendChild(titleSpanElement);
+    taskLiElement.appendChild(deleteTaskButton);
+    this._taskContainer.appendChild(taskLiElement);
   }
 
   updateTask(task) {
-    const taskElement = document.getElementById(task.id);
-    task.isDone
-      ? taskElement.classList.add('done')
-      : taskElement.classList.remove('done');
+
   }
 
   destroyTask(id) {
-    const taskElement = document.getElementById(id);
-    this._taskContainer.removeChild(taskElement);
-
-    for (const eventKey in this._events){
-      if (
-        eventKey === `${id}_toggle`
-        ||
-        eventKey === `${id}_delete`
-      ){
-        const event = this._events[eventKey];
-        taskElement.removeEventListener(event);
-      }
-    }
-  this._taskContainer.removeChild(taskElement);
+    const taskLiElement = document.getElementById(`task-${id}`);
+    this._taskContainer.removeChild(taskLiElement)
   }
 
   displayError(error) {
@@ -96,10 +48,12 @@ class Render {
 class Store {
   constructor() {
     this._storage = [];
+    this._storeLS = new StoreLS();
   }
 
   saveTask(task) {
     return new Promise((resolve) => {
+      this._storeLS.saveTask(task);
       this._storage.push(task);
       resolve(task);
     });
@@ -107,6 +61,7 @@ class Store {
 
   deleteTask(id) {
     return new Promise((resolve, reject) => {
+      this._storeLS.deleteTask(id);
       const task = this._storage.find((task) => task.id === id);
       if (!task) {
         reject(new Error(`task with id = ${id} does not exists`));
@@ -116,7 +71,7 @@ class Store {
     });
   }
 
-  updateTask(updatedTask) {
+  async updateTask(updatedTask) {
     return new Promise(async (resolve, reject) => {
       const task = this._storage.find((task) => task.id === updatedTask.id);
       if (!task) {
@@ -129,58 +84,55 @@ class Store {
   }
 
   getTask(id) {
-    return new Promise((resolve) => {
-      const task = this._storage.find(task => task.id === id);
-      resolve(task);
-    })
+
   }
 
   getTasks() {
-    return this._task;
+
   }
 }
 
-// class StoreLS {
-//   constructor() { }
+class StoreLS {
+  constructor() { }
 
-//   saveTask(task) {
-//     return new Promise((resolve) => {
-//       const json = JSON.stringify(task);
-//       localStorage.setItem(task.id, json)
-//       resolve(task);
-//     });
-//   }
+  saveTask(task) {
+    return new Promise((resolve) => {
+      const json = JSON.stringify(task);
+      localStorage.setItem(task.id, json)
+      resolve(task);
+    });
+  }
 
-//   deleteTask(id) {
-//     return new Promise((resolve, reject) => {
-//       const task = localStorage.getItem(id);
-//       if (!task) {
-//         reject(new Error(`task with id = ${id} does not exists`));
-//       }
-//       localStorage.removeItem(id);
-//       resolve({});
-//     });
-//   }
+  deleteTask(id) {
+    return new Promise((resolve, reject) => {
+      const task = localStorage.getItem(id);
+      if (!task) {
+        reject(new Error(`task with id = ${id} does not exists`));
+      }
+      localStorage.removeItem(id);
+      resolve({});
+    });
+  }
 
-//   updateTask(task) {
+  updateTask(task) {
 
-//   }
+  }
 
-//   getTask(id) {
+  getTask(id) {
 
-//   }
+  }
 
-//   getTasks() {
-//   }
-// }
+  getTasks() {
+  }
+}
 
 // class StoreJS {
 //   constructor() {
 //     this._url = '';
 //   }
 
-//    saveTask(task) {
-//     return new Promise(async(resolve, reject) => {
+//   async saveTask(task) {
+//     return new Promise((resolve, reject) => {
 //       const json = JSON.stringify(task);
 //       try {
 //         const response = await fetch(this._url, {
@@ -199,7 +151,7 @@ class Store {
 //   }
 
 //   deleteTask(id) {
-//     return new Promise(async(resolve, reject) => {
+//     return new Promise((resolve, reject) => {
 //       try {
 //         const response = await fetch(`${this._url}/${id}`, {
 //           method: "DELETE"
@@ -232,16 +184,16 @@ class Task {
     this._isDone = isDone;
   }
 
-  get id() {
-    return this._id;
-  }
-
   get title() {
     return this._title;
   }
 
   get isDone() {
     return this._isDone;
+  }
+
+  get id() {
+    return this._id;
   }
 
   toggle() {
@@ -288,6 +240,9 @@ class TODO {
     this._taskManager.createTask(title)
       .then(task => {
         this._render.renderTask(task);
+
+        const deleteTaskButton = document.getElementById(`delete-${task.id}`)
+        deleteTaskButton.addEventListener('click', () => this.deleteTask(task.id))
       })
       .catch(error => {
         this._render.displayError(error);
@@ -305,7 +260,6 @@ class TODO {
   }
 
   toggleTask(id) {
-    debugger
     this._taskManager.toggleTask(id)
       .then(task => {
         this._render.updateTask(task);
@@ -324,29 +278,34 @@ class TODOApp {
   constructor() { }
 
   execute() {
-
-
     const store = new Store();
     const taskManager = new TaskManager(store);
 
-
-
     const taskContainerRef = document.getElementById("content");
-    const errorContainerRef = document.getElementById("error");;
+    const errorContainerRef = document.getElementById("error");
+
+    let deleteTaskFunctionStub = () => {
+      throw new Error('not implemented')
+    };
+
+    let toggleTaskFunctionStub = () => {
+      throw new Error('not implemented')
+    };
 
     const render = new Render(
       taskContainerRef,
-      errorContainerRef
+      errorContainerRef,
+      deleteTaskFunctionStub,
+      toggleTaskFunctionStub
     );
 
     this._todo = new TODO(taskManager, render);
 
-    render.deleteTaskFunction = this._todo.deleteTask.bind(this._todo);
-    render.toggleTaskFunction = this._todo.toggleTask.bind(this._todo);
+    deleteTaskFunctionStub = this._todo.deleteTask.bind(this._todo);
+    toggleTaskFunctionStub = this._todo.toggleTask.bind(this._todo);
 
-    this._addTaskButtonRef = document.getElementById("submit");
+    this._addTaskButtonRef = document.getElementById("add-button");
     this._titleInputRef = document.getElementById("input");
-
 
     const addTaskButtonOnClick = function () {
       const title = this._titleInputRef.value;
