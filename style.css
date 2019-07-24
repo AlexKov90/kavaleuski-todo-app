@@ -1,0 +1,29 @@
+#container{
+    width: 500px;
+    height: 500px;
+    border: 1px solid black;
+    margin: 0 auto;
+}
+
+#add{
+    margin: 0 auto;
+    width: 80%;
+    height: 30px;
+    padding: 20px;
+}
+#addTask{
+    height: 24px;
+    width: 75%;
+}
+.buttonAddTask{
+    width: 90px;
+    height: 30px;
+}
+
+#added{
+    width: 70%;
+    height: 30px;
+    border: 1px solid black;
+    margin: 0 auto;
+    display: inline-block;
+}
