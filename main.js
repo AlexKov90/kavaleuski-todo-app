@@ -19,6 +19,15 @@ class Render {
     const checkboxButton = document.createElement('input');
 
     checkboxButton.setAttribute('type', 'checkbox');
+
+    const toggleFn = this._toggleTaskFunction;
+    const onchangeCheckbox = function(event){
+      const id = event.currentTarget.parentNode.id;
+      toggleFn(id);
+    }
+    checkboxButton.addEventListener('change', onchangeCheckbox);
+
+
     deleteTaskButton.innerText = 'Delete';
     deleteTaskButton.setAttribute('id', `delete-${task.id}`);
     taskLiElement.setAttribute('id', `task-${task.id}`);
@@ -27,7 +36,6 @@ class Render {
     taskLiElement.appendChild(checkboxButton);
     taskLiElement.appendChild(titleSpanElement);
     taskLiElement.appendChild(deleteTaskButton);
-
 
     this._taskContainer.appendChild(taskLiElement);
   }
