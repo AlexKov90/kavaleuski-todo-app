@@ -24,15 +24,19 @@ class Render {
     taskLiElement.setAttribute('id', `task-${task.id}`);
     titleSpanElement.innerText = task.title;
 
+    taskLiElement.appendChild(checkboxButton);
     taskLiElement.appendChild(titleSpanElement);
     taskLiElement.appendChild(deleteTaskButton);
-    taskLiElement.appendChild(checkboxButton);
-    
+
+
     this._taskContainer.appendChild(taskLiElement);
   }
 
   updateTask(task) {
-
+    const taskLiElement = document.getElementById(task.id);
+    task.isDone
+      ? taskLiElement.classList.add('done')
+      : taskLiElement.classList.remove('done');
   }
 
   destroyTask(id) {
@@ -45,7 +49,7 @@ class Render {
   }
 
   dispose() {
-
+    this._taskContainer.innerHTML = '';
   }
 }
 
@@ -92,7 +96,7 @@ class Store {
   }
 
   getTasks() {
-
+    return this._storeLS.getTasks();
   }
 }
 
@@ -127,6 +131,17 @@ class StoreLS {
   }
 
   getTasks() {
+    const tasks = [];
+
+    Object.values(localStorage).map(taskString => {
+      const taskObj = JSON.parse(taskString);
+
+      if (typeof taskObj === 'object' && taskObj._id) {
+        const newTask = new Task(taskObj._id, taskObj._title, taskObj._isDone);
+        tasks.push(newTask);
+      }
+    })
+    return tasks;
   }
 }
 
@@ -214,6 +229,10 @@ class TaskManager {
     }
   }
 
+  getTasks(){
+    return this._store.getTasks();
+  }
+
   createTask(title) {
     const id = this._getUniqueId();
     const task = new Task(id, title);
@@ -240,6 +259,16 @@ class TODO {
     this._render = render;
   }
 
+  renderTasks() {
+    const tasks = this._taskManager.getTasks();
+    tasks.forEach(task => {
+      this._render.renderTask(task);
+
+      const deleteTaskButton = document.getElementById(`delete-${task.id}`)
+      deleteTaskButton.addEventListener('click', () => this.deleteTask(task.id))
+    });
+  }
+
   addTask(title) {
     this._taskManager.createTask(title)
       .then(task => {
@@ -261,6 +290,8 @@ class TODO {
       .catch(error => {
         this._render.displayError(error);
       });
+    this.destroy();
+    this.renderTasks()
   }
 
   toggleTask(id) {
@@ -319,6 +350,8 @@ class TODOApp {
     this._addTaskButtonOnClickBind = addTaskButtonOnClick.bind(this);
 
     this._addTaskButtonRef.addEventListener('click', this._addTaskButtonOnClickBind);
+
+    this._todo.renderTasks();
   }
 
   destroy() {

@@ -27,3 +27,13 @@
     margin: 0 auto;
     display: inline-block;
 }
+
+.done{
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+input:checked{
+    text-decoration: line-through;
+    opacity: 0.5;
+}
